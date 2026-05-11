@@ -1,0 +1,10 @@
+streamlit
+pandas
+requests
+plotly
+reportlab
+openpyxl
+xlsxwriter
+matplotlib
+Pillow
+python-dotenv
