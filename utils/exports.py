@@ -24,7 +24,7 @@ def to_excel(sheets: dict[str, pd.DataFrame]) -> bytes:
             ws = writer.sheets[safe_name]
             for i, col in enumerate(df.columns):
                 max_len = max(
-                    df[col].astype(str).map(len).max() if not df.empty else 0,
+                    df[col].astype(str).str.len().max() if not df.empty else 0,
                     len(str(col))
                 ) + 2
                 ws.set_column(i, i, min(max_len, 60))

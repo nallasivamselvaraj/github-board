@@ -59,4 +59,5 @@ PAGES = [
     "📡 Activity Feed",
     "⏳ Staleness",
     "📊 Reports",
+    "🎯 Insights",
 ]

@@ -14,7 +14,7 @@ from utils.filters import build_sidebar_filters
 from utils.styles import inject_css
 
 st.set_page_config(
-    page_title="Engineering Intelligence",
+    page_title="Engineering Intelligence · Simtestlab",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -34,29 +34,36 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 
+st.sidebar.markdown("<div class='nav-section'>Navigation</div>", unsafe_allow_html=True)
 page = st.sidebar.radio("Navigation", PAGES, label_visibility="collapsed")
 
 st.sidebar.markdown("---")
 
 # ── Data refresh ──────────────────────────────────────────
-if st.sidebar.button("🔄 Refresh GitHub Data", width="stretch"):
-    with st.spinner("Fetching data from GitHub API…"):
-        try:
-            result = subprocess.run(
-                [sys.executable, os.path.join(ROOT, "github_org.py")],
-                capture_output=True, text=True, cwd=ROOT,
-            )
-            if result.returncode == 0:
-                st.cache_data.clear()
-                st.sidebar.success("✅ Data refreshed!")
-                st.rerun()
-            else:
-                st.sidebar.error(f"❌ Failed:\n{result.stderr[:300]}")
-        except Exception as e:
-            st.sidebar.error(f"❌ Error: {e}")
+col_a, col_b = st.sidebar.columns(2)
+with col_a:
+    if st.button("🔄 Refresh Data", use_container_width=True):
+        with st.spinner("Fetching data from GitHub API…"):
+            try:
+                result = subprocess.run(
+                    [sys.executable, os.path.join(ROOT, "github_org.py")],
+                    capture_output=True, text=True, cwd=ROOT,
+                )
+                if result.returncode == 0:
+                    st.cache_data.clear()
+                    st.sidebar.success("✅ Data refreshed!")
+                    st.rerun()
+                else:
+                    st.sidebar.error(f"❌ Failed:\n{result.stderr[:300]}")
+            except Exception as e:
+                st.sidebar.error(f"❌ Error: {e}")
+with col_b:
+    if st.button("🗑️ Clear Cache", use_container_width=True):
+        st.cache_data.clear()
+        st.rerun()
 
 # ── Global filters ────────────────────────────────────────
-st.sidebar.markdown("---")
+st.sidebar.markdown("<div class='nav-section'>Filters</div>", unsafe_allow_html=True)
 if not issues.empty:
     filters = build_sidebar_filters(issues, prs)
     st.session_state["filters"] = filters
@@ -64,7 +71,14 @@ else:
     st.session_state["filters"] = {}
 
 st.sidebar.markdown("---")
-st.sidebar.caption(latest_file_label())
+# Last fetched timestamp pill
+lbl = latest_file_label()
+st.sidebar.markdown(
+    f"<div style='text-align:center;padding:4px 0'>"
+    f"<span class='data-pill'>🕐 {lbl}</span>"
+    f"</div>",
+    unsafe_allow_html=True,
+)
 
 # ── Page routing ──────────────────────────────────────────
 if page == "🏠 Executive Dashboard":
@@ -83,6 +97,8 @@ elif page == "⏳ Staleness":
     from pages import p07_staleness as pg
 elif page == "📊 Reports":
     from pages import p08_reports as pg
+elif page == "🎯 Insights":
+    from pages import p09_insights as pg
 else:
     from pages import p01_dashboard as pg
 

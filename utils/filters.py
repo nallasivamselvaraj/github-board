@@ -18,12 +18,9 @@ import streamlit as st
 
 def build_sidebar_filters(issues: pd.DataFrame, prs: pd.DataFrame) -> dict:
     """
-    Renders the global filter sidebar.
+    Renders the global filter sidebar with collapsible sections.
     Returns a dict of selected filter values.
     """
-    st.sidebar.markdown("## 📌 Global Filters")
-    st.sidebar.markdown("---")
-
     f = {}
 
     # ── Repositories ──────────────────────────
@@ -31,68 +28,63 @@ def build_sidebar_filters(issues: pd.DataFrame, prs: pd.DataFrame) -> dict:
         set(issues["repository"].dropna().unique())
         | set(prs["repository"].dropna().unique() if not prs.empty else [])
     )
-    f["repositories"] = st.sidebar.multiselect(
-        "📦 Repositories", all_repos, default=all_repos, key="f_repos"
-    )
-
-    st.sidebar.markdown("---")
-
-    # ── Issue state ───────────────────────────
-    issue_states = sorted(issues["state"].dropna().unique()) if not issues.empty else []
-    f["issue_states"] = st.sidebar.multiselect(
-        "🐞 Issue State", issue_states, default=issue_states, key="f_istates"
-    )
-
-    # ── PR state ──────────────────────────────
-    if not prs.empty:
-        pr_states = sorted(prs["state"].dropna().unique())
-        f["pr_states"] = st.sidebar.multiselect(
-            "🔀 PR State", pr_states, default=pr_states, key="f_prstates"
+    with st.sidebar.expander("📦 Repositories", expanded=True):
+        f["repositories"] = st.multiselect(
+            "Select repositories", all_repos, default=all_repos, key="f_repos",
+            label_visibility="collapsed",
         )
-    else:
-        f["pr_states"] = []
 
-    st.sidebar.markdown("---")
+    # ── Status filters ─────────────────────────
+    with st.sidebar.expander("🔖 Status Filters", expanded=False):
+        issue_states = sorted(issues["state"].dropna().unique()) if not issues.empty else []
+        f["issue_states"] = st.multiselect(
+            "🐞 Issue State", issue_states, default=issue_states, key="f_istates"
+        )
+        if not prs.empty:
+            pr_states = sorted(prs["state"].dropna().unique())
+            f["pr_states"] = st.multiselect(
+                "🔀 PR State", pr_states, default=pr_states, key="f_prstates"
+            )
+        else:
+            f["pr_states"] = []
 
-    # ── Authors ───────────────────────────────
-    all_authors = sorted(
-        set(issues["author"].dropna().unique())
-        | set(prs["author"].dropna().unique() if not prs.empty else [])
-    )
-    f["authors"] = st.sidebar.multiselect(
-        "👤 Authors / Contributors", all_authors, default=all_authors, key="f_authors"
-    )
+    # ── People & Labels ───────────────────────
+    with st.sidebar.expander("👤 People & Labels", expanded=False):
+        all_authors = sorted(
+            set(issues["author"].dropna().unique())
+            | set(prs["author"].dropna().unique() if not prs.empty else [])
+        )
+        f["authors"] = st.multiselect(
+            "Authors / Contributors", all_authors, default=all_authors, key="f_authors"
+        )
 
-    # ── Labels ────────────────────────────────
-    label_series = (
-        issues["labels"].dropna()
-        .str.split(", ").explode().str.strip()
-    )
-    label_series = label_series[label_series != ""]
-    all_labels = sorted(label_series.unique()) if not label_series.empty else []
-    f["labels"] = st.sidebar.multiselect(
-        "🏷️ Labels", all_labels, default=all_labels, key="f_labels"
-    )
-
-    st.sidebar.markdown("---")
+        label_series = (
+            issues["labels"].dropna()
+            .str.split(", ").explode().str.strip()
+        )
+        label_series = label_series[label_series != ""]
+        all_labels = sorted(label_series.unique()) if not label_series.empty else []
+        f["labels"] = st.multiselect(
+            "🏷️ Labels", all_labels, default=all_labels, key="f_labels"
+        )
 
     # ── Date range ────────────────────────────
-    min_d = issues["created_date"].min() if not issues.empty else date.today()
-    max_d = issues["created_date"].max() if not issues.empty else date.today()
-    dr = st.sidebar.date_input(
-        "📅 Created Date Range", [min_d, max_d], key="f_daterange"
-    )
-    f["date_range"] = dr if len(dr) == 2 else [min_d, max_d]
-
-    st.sidebar.markdown("---")
+    with st.sidebar.expander("📅 Date Range", expanded=False):
+        min_d = issues["created_date"].min() if not issues.empty else date.today()
+        max_d = issues["created_date"].max() if not issues.empty else date.today()
+        dr = st.date_input(
+            "Created between", [min_d, max_d], key="f_daterange",
+            label_visibility="collapsed",
+        )
+        f["date_range"] = dr if len(dr) == 2 else [min_d, max_d]
 
     # ── Search ────────────────────────────────
-    f["search"] = st.sidebar.text_input("🔍 Search (title / author / label)", key="f_search")
-
-    # ── Staleness ─────────────────────────────
-    f["min_age"] = st.sidebar.slider("⏳ Min age (days)", 0, 365, 0, key="f_age")
-
-    st.sidebar.markdown("---")
+    st.sidebar.markdown("")
+    f["search"] = st.sidebar.text_input(
+        "🔍 Search",
+        key="f_search",
+        placeholder="Title · author · label…",
+    )
 
     return f
 
@@ -132,10 +124,6 @@ def apply_issue_filters(df: pd.DataFrame, f: dict) -> pd.DataFrame:
             | out["labels"].str.contains(search, case=False, na=False)
         )
         out = out[mask]
-
-    min_age = f.get("min_age", 0)
-    if min_age > 0 and "age_days" in out.columns:
-        out = out[out["age_days"] >= min_age]
 
     return out.reset_index(drop=True)
 
