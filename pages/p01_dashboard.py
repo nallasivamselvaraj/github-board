@@ -19,13 +19,22 @@ def render():
     releases = load_releases()
 
     if issues.empty:
-        st.warning("No issue data found. Click **🔄 Refresh Data** in the sidebar.")
+        st.markdown(
+            """<div class='info-card' style='border-color:rgba(249,226,175,0.3)'>
+                <div style='font-size:1rem;font-weight:700;color:#f9e2af;margin-bottom:6px'>⚠️ No Data Found</div>
+                <div style='font-size:0.85rem;color:#6c7086'>
+                    No issue data found. Click <b style='color:#cba6f7'>🔄 Refresh</b> in the sidebar
+                    to fetch the latest data from GitHub.
+                </div>
+            </div>""",
+            unsafe_allow_html=True,
+        )
         return
 
     m = issue_metrics(issues, prs, releases)
 
-    # ── Issue KPIs ─────────────────────────────────────────
-    st.markdown("<div class='kpi-group'>Issues</div>", unsafe_allow_html=True)
+    # ── Issues KPIs ────────────────────────────────────────
+    st.markdown("<div class='kpi-group'>📋 Issues Overview</div>", unsafe_allow_html=True)
     c1, c2, c3, c4, c5, c6 = st.columns(6)
     c1.metric("📦 Repositories",  m["total_repos"])
     c2.metric("📋 Total Issues",  m["total_issues"])
@@ -34,10 +43,10 @@ def render():
     c5.metric("📉 Closure Rate",  f"{m['closure_rate']}%")
     c6.metric("🔴 Stale >30d",    m["stale_issues"])
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
     # ── PR & Release KPIs ──────────────────────────────────
-    st.markdown("<div class='kpi-group'>Pull Requests & Releases</div>", unsafe_allow_html=True)
+    st.markdown("<div class='kpi-group'>🔀 Pull Requests & Releases</div>", unsafe_allow_html=True)
     c7, c8, c9, c10, c11, c12 = st.columns(6)
     c7.metric("🔀 Total PRs",     m["total_prs"])
     c8.metric("🟡 Open PRs",      m["open_prs"])
@@ -48,16 +57,21 @@ def render():
 
     st.markdown("<div class='gradient-divider'></div>", unsafe_allow_html=True)
 
-    # ── Activity Timeline (full width) ─────────────────────
+    # ── Full-width activity timeline ───────────────────────
+    st.markdown("<div class='section-header'>📡 Engineering Activity Timeline</div>", unsafe_allow_html=True)
     st.plotly_chart(charts.engineering_activity_timeline(issues, prs), use_container_width=True)
 
-    # ── Core charts ────────────────────────────────────────
+    st.markdown("<div class='gradient-divider'></div>", unsafe_allow_html=True)
+
+    # ── Chart grid row 1 ───────────────────────────────────
+    st.markdown("<div class='section-header'>📊 Issue Analytics</div>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         st.plotly_chart(charts.issue_state_pie(issues), use_container_width=True)
     with col2:
         st.plotly_chart(charts.top_repos_bar(issues), use_container_width=True)
 
+    # ── Chart grid row 2 ───────────────────────────────────
     col3, col4 = st.columns(2)
     with col3:
         st.plotly_chart(charts.issue_velocity(issues), use_container_width=True)
@@ -67,6 +81,7 @@ def render():
         else:
             st.plotly_chart(charts.release_timeline(releases), use_container_width=True)
 
+    # ── Chart grid row 3 ───────────────────────────────────
     col5, col6 = st.columns(2)
     with col5:
         fig_lbl = charts.label_bar(issues)
@@ -77,8 +92,9 @@ def render():
 
     st.markdown("<div class='gradient-divider'></div>", unsafe_allow_html=True)
 
-    # ── Repository Overview table ──────────────────────────
-    st.markdown("<div class='section-header'>Repository Overview</div>", unsafe_allow_html=True)
+    # ── Repository overview table ──────────────────────────
+    st.markdown("<div class='section-header'>📦 Repository Overview</div>", unsafe_allow_html=True)
     rs = repo_summary(issues, prs)
     if not rs.empty:
-        st.dataframe(rs.head(15), use_container_width=True, height=380)
+        st.dataframe(rs.head(20), use_container_width=True, height=380)
+        st.caption(f"{len(rs):,} repositories tracked")

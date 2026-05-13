@@ -16,23 +16,25 @@ from config import COLORS, STALENESS_BUCKETS
 _LAYOUT = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor ="rgba(0,0,0,0)",
-    font_color   ="#cdd6f4",
+    font_color   ="#1e1b2e",
     font_family  ="Inter, Segoe UI, system-ui, sans-serif",
     margin       =dict(l=0, r=0, t=42, b=0),
-    legend       =dict(bgcolor="rgba(0,0,0,0)", font_size=12),
-    title_font   =dict(size=14, color="#cdd6f4", family="Inter"),
+    legend       =dict(bgcolor="rgba(255,255,255,0.8)", font_size=12,
+                       bordercolor="#e5e7ef", borderwidth=1),
+    title_font   =dict(size=14, color="#1e1b2e", family="Inter"),
 )
 
 _AXIS = dict(
-    gridcolor="rgba(49,50,68,0.5)",
-    zerolinecolor="rgba(49,50,68,0.5)",
+    gridcolor="rgba(229,231,239,0.9)",
+    zerolinecolor="rgba(209,213,219,0.8)",
     showgrid=True,
-    linecolor="rgba(49,50,68,0.3)",
+    linecolor="rgba(229,231,239,0.6)",
+    tickfont=dict(color="#6b7280", size=11),
 )
 
 
 def _apply(fig: go.Figure, title: str = "") -> go.Figure:
-    fig.update_layout(title=dict(text=title, font=dict(size=14, color="#cdd6f4")), **_LAYOUT)
+    fig.update_layout(title=dict(text=title, font=dict(size=14, color="#1e1b2e", family="Inter")), **_LAYOUT)
     fig.update_xaxes(**_AXIS)
     fig.update_yaxes(**_AXIS)
     return fig
@@ -99,7 +101,7 @@ def top_repos_bar(df: pd.DataFrame, n: int = 10) -> go.Figure:
     fig = px.bar(
         counts, x="Count", y="Repository", orientation="h",
         color="Count",
-        color_continuous_scale=["#1e1e2e", "#89b4fa", "#cba6f7"],
+        color_continuous_scale=["#ede9fe", "#7c3aed", "#3b82f6"],
     )
     fig.update_layout(
         yaxis={"categoryorder": "total ascending"},
@@ -167,7 +169,7 @@ def label_bar(df: pd.DataFrame, n: int = 20) -> go.Figure:
     fig = px.bar(
         counts, x="Count", y="Label", orientation="h",
         color="Count",
-        color_continuous_scale=["#1e1e2e", "#cba6f7", "#f38ba8"],
+        color_continuous_scale=["#ede9fe", "#7c3aed", "#dc2626"],
     )
     fig.update_layout(
         yaxis={"categoryorder": "total ascending"},
@@ -255,7 +257,7 @@ def pr_repo_bar(df: pd.DataFrame, n: int = 10) -> go.Figure:
     fig = px.bar(
         counts, x="Count", y="Repository", orientation="h",
         color="Count",
-        color_continuous_scale=["#1e1e2e", "#cba6f7", "#89b4fa"],
+        color_continuous_scale=["#ede9fe", "#7c3aed", "#3b82f6"],
     )
     fig.update_layout(
         yaxis={"categoryorder": "total ascending"},
@@ -274,7 +276,7 @@ def pr_author_bar(df: pd.DataFrame, n: int = 10) -> go.Figure:
     fig = px.bar(
         counts, x="PRs", y="Author", orientation="h",
         color="PRs",
-        color_continuous_scale=["#1e1e2e", "#f38ba8", "#cba6f7"],
+        color_continuous_scale=["#fce7f3", "#ec4899", "#7c3aed"],
     )
     fig.update_layout(
         yaxis={"categoryorder": "total ascending"},
@@ -341,10 +343,10 @@ def repo_health_radar(summary: pd.DataFrame) -> go.Figure:
         ))
     fig.update_layout(
         polar=dict(
-            bgcolor="rgba(0,0,0,0)",
-            radialaxis=dict(visible=True, range=[0, 100], gridcolor="rgba(49,50,68,0.4)",
-                            tickfont=dict(size=9, color="#585b70")),
-            angularaxis=dict(gridcolor="rgba(49,50,68,0.4)"),
+            bgcolor="rgba(248,249,252,0.8)",
+            radialaxis=dict(visible=True, range=[0, 100], gridcolor="rgba(209,213,219,0.8)",
+                            tickfont=dict(size=9, color="#6b7280")),
+            angularaxis=dict(gridcolor="rgba(209,213,219,0.8)"),
         ),
     )
     return _apply(fig, "Repository Health Radar (Top 8)")
@@ -376,7 +378,7 @@ def contributor_repos_scatter(df: pd.DataFrame) -> go.Figure:
         df.head(30), x="Repos_Active", y="Issues_Opened",
         size="Comments", color="Closed_Issues",
         hover_name="Author",
-        color_continuous_scale=["#1e1e2e", "#a6e3a1", "#89b4fa"],
+        color_continuous_scale=["#dbeafe", "#10b981", "#7c3aed"],
         size_max=35,
     )
     fig.update_layout(xaxis_title="Repos Active", yaxis_title="Issues Opened")
@@ -398,7 +400,7 @@ def contributor_heatmap(df: pd.DataFrame, issues: pd.DataFrame) -> go.Figure:
         z=pivot.values,
         x=[c[:20] for c in pivot.columns],
         y=pivot.index.tolist(),
-        colorscale=[[0, "#1e1e2e"], [0.5, "#cba6f7"], [1, "#f38ba8"]],
+        colorscale=[[0, "#f5f3ff"], [0.5, "#7c3aed"], [1, "#dc2626"]],
         hoverongaps=False,
         xgap=2, ygap=2,
     ))
@@ -462,7 +464,7 @@ def activity_calendar_heatmap(df: pd.DataFrame, col: str = "date") -> go.Figure:
         z=pivot.values,
         x=pivot.columns.tolist(),
         y=["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-        colorscale=[[0, "#1e1e2e"], [0.3, "#313244"], [0.6, "#cba6f7"], [1, "#f38ba8"]],
+        colorscale=[[0, "#f5f3ff"], [0.4, "#c4b5fd"], [0.75, "#7c3aed"], [1, "#4f46e5"]],
         hoverongaps=False,
         xgap=3, ygap=3,
         showscale=False,
@@ -490,11 +492,11 @@ def issue_close_rate_trend(df: pd.DataFrame) -> go.Figure:
         x=monthly["month"], y=monthly["rate"],
         mode="lines+markers",
         name="Closure Rate %",
-        line=dict(color="#a6e3a1", width=2.5, shape="spline"),
-        marker=dict(size=7, color="#a6e3a1",
-                    line=dict(color="#0d0d14", width=2)),
+        line=dict(color="#10b981", width=2.5, shape="spline"),
+        marker=dict(size=7, color="#10b981",
+                    line=dict(color="#ffffff", width=2)),
         fill="tozeroy",
-        fillcolor="rgba(166,227,161,0.07)",
+        fillcolor="rgba(16,185,129,0.08)",
     ))
     fig.update_layout(
         xaxis_title="Month", yaxis_title="Closure Rate (%)",

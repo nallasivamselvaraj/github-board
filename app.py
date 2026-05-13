@@ -1,3 +1,4 @@
+import importlib
 import os
 import subprocess
 import sys
@@ -24,82 +25,94 @@ inject_css()
 issues = load_issues()
 prs    = load_prs()
 
-# ── Sidebar brand ─────────────────────────────────────────
+# ════════════════════════════════════════════════
+# SIDEBAR
+# ════════════════════════════════════════════════
+
+# ── Brand header ──────────────────────────────
 st.sidebar.markdown(
-    "<div class='sidebar-brand'>"
-    "<div class='sidebar-brand-icon'>🚀</div>"
-    "<div class='sidebar-brand-name'>Engineering Intelligence</div>"
-    "<div class='sidebar-brand-sub'>Simtestlab · GitHub Analytics</div>"
-    "</div>",
+    """<div class='sidebar-brand'>
+        <div class='sidebar-brand-icon'>🚀</div>
+        <div class='sidebar-brand-name'>Engineering Intelligence</div>
+        <div class='sidebar-brand-sub'>Simtestlab · GitHub Analytics</div>
+    </div>""",
     unsafe_allow_html=True,
 )
 
-st.sidebar.markdown("<div class='nav-section'>Navigation</div>", unsafe_allow_html=True)
-page = st.sidebar.radio("Navigation", PAGES, label_visibility="collapsed")
+# ── Navigation ────────────────────────────────
+st.sidebar.markdown(
+    "<div class='nav-section'>Navigation</div>",
+    unsafe_allow_html=True,
+)
+page = st.sidebar.radio("nav", PAGES, label_visibility="collapsed", key="nav_radio")
 
-st.sidebar.markdown("---")
+# ── Data controls ─────────────────────────────
+st.sidebar.markdown(
+    "<div class='sidebar-section-divider'></div>"
+    "<div class='nav-section'>Data Controls</div>",
+    unsafe_allow_html=True,
+)
 
-# ── Data refresh ──────────────────────────────────────────
-col_a, col_b = st.sidebar.columns(2)
-with col_a:
-    if st.button("🔄 Refresh Data", use_container_width=True):
-        with st.spinner("Fetching data from GitHub API…"):
-            try:
-                result = subprocess.run(
-                    [sys.executable, os.path.join(ROOT, "github_org.py")],
-                    capture_output=True, text=True, cwd=ROOT,
-                )
-                if result.returncode == 0:
-                    st.cache_data.clear()
-                    st.sidebar.success("✅ Data refreshed!")
-                    st.rerun()
-                else:
-                    st.sidebar.error(f"❌ Failed:\n{result.stderr[:300]}")
-            except Exception as e:
-                st.sidebar.error(f"❌ Error: {e}")
-with col_b:
-    if st.button("🗑️ Clear Cache", use_container_width=True):
-        st.cache_data.clear()
-        st.rerun()
+if st.sidebar.button("🔄 Refresh Data", use_container_width=True, key="btn_refresh"):
+    with st.sidebar.status("Fetching from GitHub API…", expanded=True):
+        try:
+            result = subprocess.run(
+                [sys.executable, os.path.join(ROOT, "github_org.py")],
+                capture_output=True, text=True, cwd=ROOT,
+            )
+            if result.returncode == 0:
+                st.cache_data.clear()
+                st.sidebar.success("✅ Data refreshed!")
+                st.rerun()
+            else:
+                st.sidebar.error(f"❌ {result.stderr[:200]}")
+        except Exception as e:
+            st.sidebar.error(f"❌ {e}")
 
-# ── Global filters ────────────────────────────────────────
-st.sidebar.markdown("<div class='nav-section'>Filters</div>", unsafe_allow_html=True)
+if st.sidebar.button("🗑️ Clear Cache", use_container_width=True, key="btn_cache"):
+    st.cache_data.clear()
+    st.rerun()
+
+# ── Filters ───────────────────────────────────
+st.sidebar.markdown(
+    "<div class='sidebar-section-divider'></div>"
+    "<div class='nav-section'>Filters</div>",
+    unsafe_allow_html=True,
+)
 if not issues.empty:
     filters = build_sidebar_filters(issues, prs)
     st.session_state["filters"] = filters
 else:
     st.session_state["filters"] = {}
+    st.sidebar.markdown(
+        "<div class='sidebar-empty-msg'>No data yet.<br>Click 🔄 Refresh Data above.</div>",
+        unsafe_allow_html=True,
+    )
 
-st.sidebar.markdown("---")
-# Last fetched timestamp pill
+# ── Footer ────────────────────────────────────
 lbl = latest_file_label()
 st.sidebar.markdown(
-    f"<div style='text-align:center;padding:4px 0'>"
-    f"<span class='data-pill'>🕐 {lbl}</span>"
-    f"</div>",
+    f"""<div class='sidebar-footer'>
+        <span class='data-pill'>🕐 {lbl}</span>
+        <div class='sidebar-footer-ver'>v2.0 · Simtestlab Analytics</div>
+    </div>""",
     unsafe_allow_html=True,
 )
 
-# ── Page routing ──────────────────────────────────────────
-if page == "🏠 Executive Dashboard":
-    from pages import p01_dashboard as pg
-elif page == "📦 Repositories":
-    from pages import p02_repositories as pg
-elif page == "🐞 Issues":
-    from pages import p03_issues as pg
-elif page == "🔀 Pull Requests":
-    from pages import p04_pull_requests as pg
-elif page == "👤 Contributors":
-    from pages import p05_contributors as pg
-elif page == "📡 Activity Feed":
-    from pages import p06_activity as pg
-elif page == "⏳ Staleness":
-    from pages import p07_staleness as pg
-elif page == "📊 Reports":
-    from pages import p08_reports as pg
-elif page == "🎯 Insights":
-    from pages import p09_insights as pg
-else:
-    from pages import p01_dashboard as pg
-
+# ════════════════════════════════════════════════
+# PAGE ROUTING
+# ════════════════════════════════════════════════
+_page_map = {
+    "🏠 Executive Dashboard":  "pages.p01_dashboard",
+    "📦 Repositories":         "pages.p02_repositories",
+    "🐞 Issues":               "pages.p03_issues",
+    "🔀 Pull Requests":        "pages.p04_pull_requests",
+    "👤 Contributors":         "pages.p05_contributors",
+    "📡 Activity Feed":        "pages.p06_activity",
+    "⏳ Staleness":            "pages.p07_staleness",
+    "📊 Reports":              "pages.p08_reports",
+    "🎯 Insights":             "pages.p09_insights",
+}
+mod_name = _page_map.get(page, "pages.p01_dashboard")
+pg = importlib.import_module(mod_name)
 pg.render()
