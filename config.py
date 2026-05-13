@@ -31,23 +31,23 @@ STALE_WARNING  = 30   # days
 STALE_CRITICAL = 90   # days
 
 COLORS = {
-    "open":   "#f38ba8",
-    "closed": "#a6e3a1",
-    "merged": "#cba6f7",
-    "draft":  "#89b4fa",
-    "green":  "#a6e3a1",
-    "yellow": "#f9e2af",
-    "orange": "#fab387",
-    "red":    "#f38ba8",
-    "blue":   "#89b4fa",
-    "purple": "#cba6f7",
+    "open":   "#f2495c",  # Vibrant Red
+    "closed": "#73bf69",  # Vibrant Green
+    "merged": "#5794f2",  # Vibrant Blue
+    "draft":  "#fade2a",  # Yellow
+    "green":  "#73bf69",
+    "yellow": "#fade2a",
+    "orange": "#f46800",  # Grafana Orange
+    "red":    "#f2495c",
+    "blue":   "#5794f2",
+    "purple": "#b877d9",
 }
 
 STALENESS_BUCKETS = [
-    ("🟢 < 1 week",   0,  7,      "#a6e3a1"),
-    ("🟡 1–4 weeks",  7,  30,     "#f9e2af"),
-    ("🟠 1–3 months", 30, 90,     "#fab387"),
-    ("🔴 > 3 months", 90, 999999, "#f38ba8"),
+    ("🟢 < 1 week",   0,  7,      "#73bf69"),
+    ("🟡 1–4 weeks",  7,  30,     "#fade2a"),
+    ("🟠 1–3 months", 30, 90,     "#f46800"),
+    ("🔴 > 3 months", 90, 999999, "#f2495c"),
 ]
 
 PAGES = [
