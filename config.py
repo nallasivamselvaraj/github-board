@@ -37,7 +37,7 @@ COLORS = {
     "draft":  "#fade2a",  # Yellow
     "green":  "#73bf69",
     "yellow": "#fade2a",
-    "orange": "#f46800",  # Grafana Orange
+    "orange": "#f46800",  # Simtestlab Orange
     "red":    "#f2495c",
     "blue":   "#5794f2",
     "purple": "#b877d9",

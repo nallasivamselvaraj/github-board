@@ -1,4 +1,4 @@
-# utils/report_gen.py  –  Grafana-style Professional Light PDF
+# utils/report_gen.py  –  Professional Light PDF Report Generator
 import io, os
 from datetime import date, datetime
 
@@ -28,18 +28,30 @@ try:
 except ImportError:
     MPL_OK = False
 
-# ── Grafana Light Palette ──────────────────────────────────
+# ── Hex Palette (Shared) ──────────────────────────────────
+C_BG      = "#ffffff"
+C_SURF    = "#f7f8fa"
+C_ACCENT  = "#f46800"
+C_BLUE    = "#1f60c4"
+C_GREEN   = "#36a347"
+C_RED     = "#c4162a"
+C_YELLOW  = "#e0b400"
+C_TEXT    = "#24292e"
+C_MUTED   = "#718096"
+C_BORDER  = "#d8dce0"
+C_WHITE   = "#ffffff"
+
+# ── ReportLab Color Objects ───────────────────────────────
 _BG      = colors.white
-_SURF    = colors.HexColor("#f7f8fa")   # Light gray panel
-_SURF2   = colors.white
-_ACCENT  = colors.HexColor("#f46800")   # Grafana Orange
-_BLUE    = colors.HexColor("#1f60c4")   # Blue
-_GREEN   = colors.HexColor("#36a347")   # Green
-_RED     = colors.HexColor("#c4162a")   # Red
-_YELLOW  = colors.HexColor("#e0b400")   # Yellow
-_TEXT    = colors.HexColor("#24292e")   # Primary text
-_MUTED   = colors.HexColor("#718096")   # Secondary text
-_BORDER  = colors.HexColor("#d8dce0")   # Border
+_SURF    = colors.HexColor(C_SURF)
+_ACCENT  = colors.HexColor(C_ACCENT)
+_BLUE    = colors.HexColor(C_BLUE)
+_GREEN   = colors.HexColor(C_GREEN)
+_RED     = colors.HexColor(C_RED)
+_YELLOW  = colors.HexColor(C_YELLOW)
+_TEXT    = colors.HexColor(C_TEXT)
+_MUTED   = colors.HexColor(C_MUTED)
+_BORDER  = colors.HexColor(C_BORDER)
 _WHITE   = colors.white
 
 LOGO_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "logo.png")
@@ -71,144 +83,85 @@ def _styles():
             alignment=TA_CENTER),
     }
 
-# ── Page template callbacks ────────────────────────────────
 def _header_footer(canvas, doc):
     canvas.saveState()
     w, h = A4
-    
-    # ── Top bar (Orange accent) ──
     canvas.setFillColor(_ACCENT)
     canvas.rect(0, h - 0.5*cm, w, 0.5*cm, fill=1, stroke=0)
-
-    # Header text
     canvas.setFont("Helvetica-Bold", 7)
     canvas.setFillColor(_WHITE)
-    canvas.drawString(1.5*cm, h - 0.35*cm, "ENGINEERING INTELLIGENCE  ·  GRAFANA EXPORT")
+    canvas.drawString(1.5*cm, h - 0.35*cm, "ENGINEERING INTELLIGENCE  ")
     canvas.drawRightString(w - 1.5*cm, h - 0.35*cm,
         f"Generated {datetime.now().strftime('%Y-%m-%d  %H:%M')}")
-
-    # ── Bottom footer line ──
     canvas.setStrokeColor(_BORDER)
     canvas.setLineWidth(0.6)
     canvas.line(1.5*cm, 1.0*cm, w - 1.5*cm, 1.0*cm)
-
-    # Page number
     canvas.setFont("Helvetica", 7)
     canvas.setFillColor(_MUTED)
     canvas.drawCentredString(w/2, 0.55*cm, f"Page {doc.page}")
     canvas.restoreState()
 
-def _first_page(canvas, doc):
-    _header_footer(canvas, doc)
+def _first_page(canvas, doc): _header_footer(canvas, doc)
+def _later_pages(canvas, doc): _header_footer(canvas, doc)
 
-def _later_pages(canvas, doc):
-    _header_footer(canvas, doc)
-
-# ── Logo drawing ──────────────────────────────────────────
 def _make_logo_drawing() -> Drawing:
     d = Drawing(160, 60)
     d.add(Rect(0, 0, 160, 60, fillColor=_ACCENT, strokeColor=None, rx=4, ry=4))
-    d.add(String(80, 22, "GRAFANA", fontSize=24, fillColor=_WHITE,
-                 fontName="Helvetica-Bold", textAnchor="middle"))
-    d.add(String(80, 10, "ENGINEERING INTEL", fontSize=7, fillColor=_WHITE,
-                 fontName="Helvetica", textAnchor="middle"))
+    d.add(String(80, 22, "SIMTESTLAB", fontSize=20, fillColor=_WHITE, fontName="Helvetica-Bold", textAnchor="middle"))
+    d.add(String(80, 10, "ENGINEERING INTEL", fontSize=7, fillColor=_WHITE, fontName="Helvetica", textAnchor="middle"))
     return d
 
-# ── KPI Table ─────────────────────────────────────────────
 _USABLE_W = 18.0 * cm
 
 def _kpi_table(metrics: dict, styles: dict) -> Table:
-    keys   = ["total_issues","open_issues","closed_issues","closure_rate",
-              "total_prs","merged_prs","contributors","stale_issues"]
-    labels = ["TOTAL ISSUES","OPEN","CLOSED","CLOSURE %",
-              "TOTAL PRS","MERGED PRS","TEAM","STALE >30D"]
+    keys   = ["total_issues","open_issues","closed_issues","closure_rate","total_prs","merged_prs","contributors","stale_issues"]
+    labels = ["TOTAL ISSUES","OPEN","CLOSED","CLOSURE %","TOTAL PRS","MERGED PRS","TEAM","STALE >30D"]
     raw    = [metrics.get(k, "—") for k in keys]
     values = []
     for v in raw:
         try:    values.append(str(round(float(v), 1)))
         except: values.append(str(v))
-
     colored = []
-    clr_map = {
-        "open_issues":   "#c4162a",  # Red
-        "stale_issues":  "#c4162a",
-        "closed_issues": "#36a347",  # Green
-        "merged_prs":    "#36a347",
-        "contributors":  "#1f60c4",  # Blue
-    }
+    clr_map = {"open_issues": C_RED, "stale_issues": C_RED, "closed_issues": C_GREEN, "merged_prs": C_GREEN, "contributors": C_BLUE}
     for i, v in enumerate(values):
-        c = clr_map.get(keys[i], "#24292e")
+        c = clr_map.get(keys[i], C_TEXT)
         if keys[i] == "closure_rate":
-            try: c = "#36a347" if float(v) >= 60 else ("#f46800" if float(v) >= 30 else "#c4162a")
+            try: c = C_GREEN if float(v) >= 60 else (C_ACCENT if float(v) >= 30 else C_RED)
             except: pass
         colored.append(Paragraph(f"<font color='{c}'><b>{v}</b></font>", styles["kpi_v"]))
-
     cw = [_USABLE_W / 8] * 8
-    data = [colored, [Paragraph(l, styles["kpi_l"]) for l in labels]]
-    t = Table(data, colWidths=cw)
-    t.setStyle(TableStyle([
-        ("BACKGROUND",    (0,0),(-1,-1), _SURF),
-        ("BOX",           (0,0),(-1,-1), 0.8, _ACCENT),
-        ("INNERGRID",     (0,0),(-1,-1), 0.4, _BORDER),
-        ("TOPPADDING",    (0,0),(-1,-1), 12),
-        ("BOTTOMPADDING", (0,0),(-1,-1), 12),
-    ]))
+    t = Table([colored, [Paragraph(l, styles["kpi_l"]) for l in labels]], colWidths=cw)
+    t.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,-1), _SURF), ("BOX",(0,0),(-1,-1), 0.8, _ACCENT), ("INNERGRID",(0,0),(-1,-1), 0.4, _BORDER), ("TOPPADDING",(0,0),(-1,-1), 12), ("BOTTOMPADDING",(0,0),(-1,-1), 12)]))
     return t
 
-# ── DataFrame Table ───────────────────────────────────────
-def _df_table(df: pd.DataFrame, max_rows=30, col_widths=None,
-              grade_col: str | None = None) -> Table:
+def _df_table(df: pd.DataFrame, max_rows=30, col_widths=None, grade_col: str | None = None) -> Table:
     cols = [c.upper() for c in df.columns]
     display = df.head(max_rows).copy()
-    for col in display.columns:
-        display[col] = display[col].astype(str).str[:40]
+    for col in display.columns: display[col] = display[col].astype(str).str[:40]
     rows = [cols] + display.values.tolist()
-    num_cols = len(cols)
-    cw = col_widths or [_USABLE_W / num_cols] * num_cols
-
+    cw = col_widths or [_USABLE_W / len(cols)] * len(cols)
     t = Table(rows, colWidths=cw, repeatRows=1)
-    style = [
-        ("BACKGROUND",    (0,0),(-1,0),  _ACCENT),
-        ("TEXTCOLOR",     (0,0),(-1,0),  _WHITE),
-        ("FONTNAME",      (0,0),(-1,0),  "Helvetica-Bold"),
-        ("FONTSIZE",      (0,1),(-1,-1), 7),
-        ("TEXTCOLOR",     (0,1),(-1,-1), _TEXT),
-        ("ROWBACKGROUNDS",(0,1),(-1,-1), [_WHITE, _SURF]),
-        ("GRID",          (0,0),(-1,-1), 0.3, _BORDER),
-        ("BOX",           (0,0),(-1,-1), 0.6, _ACCENT),
-    ]
+    style = [("BACKGROUND",(0,0),(-1,0), _ACCENT), ("TEXTCOLOR",(0,0),(-1,0), _WHITE), ("FONTNAME",(0,0),(-1,0), "Helvetica-Bold"), ("FONTSIZE",(0,1),(-1,-1), 7), ("TEXTCOLOR",(0,1),(-1,-1), _TEXT), ("ROWBACKGROUNDS",(0,1),(-1,-1), [_WHITE, _SURF]), ("GRID",(0,0),(-1,-1), 0.3, _BORDER), ("BOX",(0,0),(-1,-1), 0.6, _ACCENT)]
     if grade_col and grade_col.upper() in cols:
         gi = cols.index(grade_col.upper())
         gc_map = {"A": _GREEN, "B": _BLUE, "C": _YELLOW, "D": _ACCENT, "F": _RED}
         for ri, row in enumerate(rows[1:], 1):
-            g = row[gi] if gi < len(row) else ""
-            gc = gc_map.get(g, _TEXT)
-            style += [("TEXTCOLOR", (gi,ri),(gi,ri), gc),
-                      ("FONTNAME",  (gi,ri),(gi,ri), "Helvetica-Bold")]
+            gc = gc_map.get(row[gi] if gi < len(row) else "", _TEXT)
+            style += [("TEXTCOLOR", (gi,ri),(gi,ri), gc), ("FONTNAME", (gi,ri),(gi,ri), "Helvetica-Bold")]
     t.setStyle(TableStyle(style))
     return t
 
-# ── Matplotlib chart helpers ───────────────────────────────
-_MPL_STYLE = {
-    "facecolor": "#ffffff",
-    "text_color": "#24292e",
-    "grid_color": "#e2e8f0",
-    "bar_open":   "#c4162a",
-    "bar_closed": "#36a347",
-    "accent":     "#f46800",
-}
+_MPL_STYLE = {"facecolor": C_BG, "text_color": C_TEXT, "grid_color": "#e2e8f0", "bar_open": C_RED, "bar_closed": C_GREEN, "accent": C_ACCENT}
 
 def _mpl_buf(fig) -> io.BytesIO:
     buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=130, bbox_inches="tight",
-                facecolor=_MPL_STYLE["facecolor"], edgecolor="none")
+    fig.savefig(buf, format="png", dpi=130, bbox_inches="tight", facecolor=_MPL_STYLE["facecolor"], edgecolor="none")
     plt.close(fig)
     buf.seek(0)
     return buf
 
 def _chart_issues_bar(issues: pd.DataFrame) -> io.BytesIO | None:
-    if not MPL_OK or issues.empty or "state" not in issues.columns:
-        return None
+    if not MPL_OK or issues.empty or "state" not in issues.columns: return None
     grp = issues.groupby("state").size()
     fig, ax = plt.subplots(figsize=(5, 2.5), facecolor=_MPL_STYLE["facecolor"])
     clrs = [_MPL_STYLE["bar_open"] if s=="open" else _MPL_STYLE["bar_closed"] for s in grp.index]
@@ -226,7 +179,7 @@ def _chart_pr_pie(prs: pd.DataFrame) -> io.BytesIO | None:
     merged = int(prs.get("merged", pd.Series(dtype=bool)).sum()) if "merged" in prs.columns else 0
     open_  = int((prs["state"] == "open").sum()) if "state" in prs.columns else 0
     closed_unmerged = max(0, len(prs) - merged - open_)
-    vals, labels, clrs = [merged, open_, closed_unmerged], ["Merged","Open","Closed"], [_BLUE, _RED, _ACCENT]
+    vals, labels, clrs = [merged, open_, closed_unmerged], ["Merged","Open","Closed"], [C_BLUE, C_RED, C_ACCENT]
     filtered = [(v,l,c) for v,l,c in zip(vals,labels,clrs) if v>0]
     if not filtered: return None
     vals, labels, clrs = zip(*filtered)
@@ -244,8 +197,8 @@ def _chart_closure_trend(issues: pd.DataFrame) -> io.BytesIO | None:
         if monthly.empty: return None
         monthly.index = [str(p) for p in monthly.index]
         fig, ax = plt.subplots(figsize=(7, 2.8), facecolor=_MPL_STYLE["facecolor"])
-        if "open"   in monthly.columns: ax.plot(monthly.index, monthly["open"], color=_RED, marker="o", label="Open")
-        if "closed" in monthly.columns: ax.plot(monthly.index, monthly["closed"], color=_GREEN, marker="s", label="Closed")
+        if "open"   in monthly.columns: ax.plot(monthly.index, monthly["open"], color=C_RED, marker="o", label="Open")
+        if "closed" in monthly.columns: ax.plot(monthly.index, monthly["closed"], color=C_GREEN, marker="s", label="Closed")
         ax.set_title("MONTHLY VELOCITY", color=_MPL_STYLE["text_color"], fontsize=10, pad=10, fontname="Helvetica-Bold")
         ax.tick_params(colors=_MPL_STYLE["text_color"], labelsize=8)
         ax.yaxis.grid(True, color=_MPL_STYLE["grid_color"], linewidth=0.6)
@@ -257,7 +210,7 @@ def _buf_to_image(buf, width_cm=8) -> Image | None:
     if buf is None: return None
     try:
         img = Image(buf)
-        img.drawWidth  = width_cm * cm
+        img.drawWidth = width_cm * cm
         img.drawHeight = width_cm * cm * (img.imageHeight / img.imageWidth)
         return img
     except: return None
@@ -268,18 +221,17 @@ def _section(title: str, styles: dict) -> list:
 def generate_pdf(metrics: dict, issues: pd.DataFrame, prs: pd.DataFrame, contributors: pd.DataFrame, repo_summary: pd.DataFrame, report_type: str = "Daily", selected_date: date | None = None, date_range: tuple | None = None) -> bytes:
     if not REPORTLAB_OK: raise ImportError("reportlab missing.")
     buf = io.BytesIO()
-    doc = SimpleDocTemplate(buf, pagesize=A4, leftMargin=1.5*cm, rightMargin=1.5*cm, topMargin=2.2*cm, bottomMargin=1.8*cm, title="Engineering Intel · Grafana Export")
+    doc = SimpleDocTemplate(buf, pagesize=A4, leftMargin=1.5*cm, rightMargin=1.5*cm, topMargin=2.2*cm, bottomMargin=1.8*cm, title="Engineering Intel ")
     styles, story = _styles(), []
     story.append(Spacer(1, 1.5*cm))
     drw = _make_logo_drawing()
     drw.hAlign = "CENTER"
     story.append(drw)
     story.append(Spacer(1, 1.2*cm))
-    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
     story.append(Paragraph("Engineering Intelligence Dashboard", styles["cover_title"]))
     story.append(Paragraph("Simtestlab  ·  Real-time GitHub Analytics", styles["cover_sub"]))
     story.append(Spacer(1, 0.5*cm))
-    story.append(Paragraph(f"Generated on {now_str}", styles["cover_meta"]))
+    story.append(Paragraph(f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M')}", styles["cover_meta"]))
     story.append(Spacer(1, 1.5*cm))
     story.append(HRFlowable(width="100%", thickness=1.5, color=_ACCENT, spaceAfter=14))
     story.append(Paragraph("EXECUTIVE KPI SUMMARY", styles["h1"]))

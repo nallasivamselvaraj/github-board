@@ -21,9 +21,9 @@ def render():
 
     if issues.empty:
         st.markdown(
-            """<div class='info-card' style='border-color:rgba(220,38,38,0.3)'>
-                <div style='font-size:1rem;font-weight:700;color:#dc2626;margin-bottom:6px'>⚠️ No Data</div>
-                <div style='font-size:0.85rem;color:#6b7280'>No data available — click <b>🔄 Refresh Data</b> in the sidebar.</div>
+            """<div class='info-card' style='border-color:rgba(196,22,42,0.3)'>
+                <div style='font-size:1rem;font-weight:700;color:#c4162a;margin-bottom:6px'>⚠️ No Data</div>
+                <div style='font-size:0.85rem;color:#718096'>No data available — click <b>🔄 Refresh Data</b> in the sidebar.</div>
             </div>""",
             unsafe_allow_html=True,
         )
@@ -127,17 +127,7 @@ def render():
         lang.columns = ["Language", "Repos"]
         fig_lang = px.pie(
             lang.head(12), names="Language", values="Repos",
-            title="Repositories by Language",
-            color_discrete_sequence=["#7c3aed","#3b82f6","#10b981","#f59e0b",
-                                     "#ec4899","#06b6d4","#84cc16","#f97316",
-                                     "#8b5cf6","#14b8a6","#ef4444","#a3e635"],
+            hole=0.6,
         )
-        fig_lang.update_layout(
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            font_color="#1e1b2e",
-            font_family="Inter, Segoe UI, sans-serif",
-            margin=dict(l=0, r=0, t=36, b=0),
-            legend=dict(bgcolor="rgba(255,255,255,0.8)", bordercolor="#e5e7ef", borderwidth=1),
-        )
-        st.plotly_chart(fig_lang, use_container_width=True)
+        from utils.charts import _apply
+        st.plotly_chart(_apply(fig_lang, "Repositories by Language"), use_container_width=True)

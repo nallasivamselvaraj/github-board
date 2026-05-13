@@ -11,7 +11,7 @@ from plotly.subplots import make_subplots
 
 from config import COLORS, STALENESS_BUCKETS
 
-# ── Grafana Light Layout Constants ───────────────────────
+# ── Professional Light Layout Constants ───────────────────
 _LAYOUT = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor ="rgba(0,0,0,0)",

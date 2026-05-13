@@ -8,6 +8,7 @@ from utils.data_loader import load_issues, load_prs, load_releases
 from utils.filters import apply_issue_filters, apply_pr_filters
 from utils.metrics import contributor_summary, issue_metrics, repo_summary
 from utils.exports import download_csv_button, download_excel_button
+from utils import charts
 
 
 def _date_filter(df: pd.DataFrame, start: date, end: date, col="created_date") -> pd.DataFrame:
@@ -99,7 +100,7 @@ def render():
                     from utils.report_gen import REPORTLAB_OK, generate_pdf
                     if not REPORTLAB_OK: st.error("❌ reportlab missing.")
                     else:
-                        with st.spinner("Compiling Grafana-style PDF…"):
+                        with st.spinner("Compiling professional PDF…"):
                             rs2 = repo_summary(ri, rp) if include_repos else pd.DataFrame()
                             cs2 = contributor_summary(ri, rp) if include_contrib else pd.DataFrame()
                             pdf_bytes = generate_pdf(m, ri, rp, cs2, rs2, report_type, 
@@ -109,11 +110,11 @@ def render():
                 except Exception as e: st.error(f"Failed: {e}")
         
         with c_info:
-            st.markdown("""<div style='background:#111217;border-radius:4px;padding:15px;font-size:0.8rem;color:#6e7077;line-height:1.8;border:1px solid #2c3235'>
-                ✅ Grafana-inspired dark theme<br>
+            st.markdown("""<div style='background:#f7f8fa;border-radius:4px;padding:15px;font-size:0.8rem;color:#718096;line-height:1.8;border:1px solid #d8dce0'>
+                ✅ Professional light theme<br>
                 ✅ Executive KPI grid & Branded cover<br>
                 ✅ Health scores (A-F grading)<br>
-                ✅ Embedded Matplotlib high-contrast charts
+                ✅ Embedded Matplotlib light-themed charts
             </div>""", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 

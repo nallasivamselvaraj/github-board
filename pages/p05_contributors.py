@@ -20,9 +20,9 @@ def render():
 
     if issues.empty:
         st.markdown(
-            """<div class='info-card' style='border-color:rgba(220,38,38,0.3)'>
-                <div style='font-size:1rem;font-weight:700;color:#dc2626;margin-bottom:6px'>⚠️ No Data</div>
-                <div style='font-size:0.85rem;color:#6b7280'>No data available — click <b>🔄 Refresh Data</b> in the sidebar.</div>
+            """<div class='info-card' style='border-color:rgba(196,22,42,0.3)'>
+                <div style='font-size:1rem;font-weight:700;color:#c4162a;margin-bottom:6px'>⚠️ No Data</div>
+                <div style='font-size:0.85rem;color:#718096'>No data available — click <b>🔄 Refresh Data</b> in the sidebar.</div>
             </div>""",
             unsafe_allow_html=True,
         )
@@ -81,8 +81,8 @@ def render():
 
             total_contrib = int(cr["contributions"].sum())
             st.markdown(
-                f"<div class='info-card'>"
-                f"<span style='font-weight:700;color:#7c3aed'>{selected}</span> "
+                f"<div class='accent-card'>"
+                f"<span style='font-weight:700;color:#1f60c4'>{selected}</span> "
                 f"— <b>{total_contrib:,}</b> total contributions across "
                 f"<b>{len(cr)}</b> repositories"
                 f"</div>",
@@ -96,18 +96,7 @@ def render():
                 fig = px.bar(
                     cr.head(20), x="contributions", y="repository",
                     orientation="h", color="contributions",
-                    color_continuous_scale=["#ede9fe", "#7c3aed", "#4f46e5"],
-                    title=f"{selected} — contributions by repository",
+                    color_continuous_scale=[[0, "#f7f8fa"], [1, "#1f60c4"]],
                 )
-                fig.update_layout(
-                    paper_bgcolor="rgba(0,0,0,0)",
-                    plot_bgcolor="rgba(0,0,0,0)",
-                    font_color="#1e1b2e",
-                    font_family="Inter, Segoe UI, sans-serif",
-                    margin=dict(l=0, r=0, t=36, b=0),
-                    yaxis={"categoryorder": "total ascending"},
-                    coloraxis_showscale=False,
-                )
-                fig.update_xaxes(gridcolor="rgba(229,231,239,0.9)", tickfont=dict(color="#6b7280"))
-                fig.update_yaxes(gridcolor="rgba(229,231,239,0.9)", tickfont=dict(color="#6b7280"))
-                st.plotly_chart(fig, use_container_width=True)
+                from utils.charts import _apply
+                st.plotly_chart(_apply(fig, f"{selected} — contributions by repository"), use_container_width=True)

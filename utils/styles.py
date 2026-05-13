@@ -1,6 +1,6 @@
 import streamlit as st
 
-# ── Grafana-inspired Light Design System ──────────────────
+# ── Professional Light Design System ──────────────────
 # Colors: #ffffff bg · #f7f8fa panel · #d8dce0 border
 # Accent: #f46800 orange · #1f60c4 blue
 # Status: #36a347 green · #c4162a red · #e0b400 yellow
@@ -32,7 +32,7 @@ body,.stMarkdown,.stText {
 }
 
 /* ══════════════════════════════════════════════════════
-   METRIC CARDS — Grafana panel style (Light)
+   METRIC CARDS — Panel style (Light)
    Fixed "Overlays": increased padding and removed absolute overlap
 ══════════════════════════════════════════════════════ */
 [data-testid="metric-container"] {
@@ -85,7 +85,7 @@ body,.stMarkdown,.stText {
 }
 
 /* ══════════════════════════════════════════════════════
-   SIDEBAR — Grafana Light Nav
+   SIDEBAR — Navigation Light
    Fixed "Overlays": fixed label interaction and spacing
 ══════════════════════════════════════════════════════ */
 [data-testid="stSidebar"] {
@@ -155,7 +155,7 @@ body,.stMarkdown,.stText {
 }
 
 /* ══════════════════════════════════════════════════════
-   TABS — Grafana light tab bar
+   TABS — Light tab bar
 ══════════════════════════════════════════════════════ */
 [data-testid="stTabs"] [data-baseweb="tab-list"] {
     background:#f7f8fa;
@@ -247,7 +247,7 @@ body,.stMarkdown,.stText {
     font-family:'JetBrains Mono',monospace;
 }
 
-/* Grafana panel card */
+/* Panel card style */
 .info-card {
     background:#ffffff;
     border:1px solid #d8dce0;
