@@ -68,6 +68,7 @@ def get_repo_issues(repo_name):
     raw = paginate(url, {"state": ISSUE_STATE})
     return [i for i in raw if "pull_request" not in i]
 
+
 # ============================================================
 # PULL REQUESTS
 # ============================================================
@@ -180,6 +181,7 @@ def extract_contributor(repo_name, c):
         "avatar_url":    c.get("avatar_url", ""),
         "profile_url":   c.get("html_url", ""),
     }
+
 
 # ============================================================
 # MAIN

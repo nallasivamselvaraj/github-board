@@ -8,14 +8,14 @@ from utils.exports import download_csv_button, download_excel_button
 
 _DISPLAY = [
     "repository", "issue_number", "title", "state", "author",
-    "labels", "comments", "age_days", "days_since_update",
+    "labels", "commented", "age_days", "days_since_update",
     "created_at", "issue_url",
 ]
 _COL_CFG = {
     "issue_url":         st.column_config.LinkColumn("Link", display_text="Open ↗"),
     "age_days":          st.column_config.NumberColumn("Age (days)", format="%d d"),
     "days_since_update": st.column_config.NumberColumn("Stale (days)", format="%d d"),
-    "comments":          st.column_config.NumberColumn("💬 Comments"),
+    "commented":         st.column_config.CheckboxColumn("💬 Commented"),
     "issue_number":      st.column_config.NumberColumn("#"),
 }
 
@@ -60,7 +60,10 @@ def render():
                 unsafe_allow_html=True)
 
     f      = st.session_state.get("filters", {})
-    issues = apply_issue_filters(load_issues(), f)
+    raw    = load_issues()
+    if not raw.empty:
+        raw["commented"] = raw["comments"] > 0
+    issues = apply_issue_filters(raw, f)
 
     if issues.empty:
         st.markdown(
